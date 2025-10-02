@@ -1,0 +1,63 @@
+---
+title: "Injury Severity Dashboard"
+author: "Eli Green"
+date: "2025-10-02"
+output:
+  html_document:
+    self_contained: true
+    theme: flatly
+    toc: true
+    toc_depth: 2
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(lubridate)
+```
+
+###Overview
+This dashboard explores aviation accident data segmented by injury severity. It highlights patterns across regions, operator types, and time.
+
+```{r mock-injury-data}
+accidents <- tibble::tibble(
+  event_date = as.Date(c("2020-01-01", "2021-06-15", "2022-03-10", "2022-08-20")),
+  injury_severity = c("Fatal", "Serious", "Minor", "Fatal"),
+  region = c("Eastern", "Western", "Southern", "Eastern"),
+  operator_type = c("Commercial", "Private", "Cargo", "Private")
+) %>%
+  mutate(event_year = year(event_date))
+```
+
+```{r injury-trends}
+# Create a complete grid of all combinations
+full_grid <- expand.grid(
+  event_year = seq(min(accidents$event_year), max(accidents$event_year)),
+  operator_type = unique(accidents$operator_type),
+  injury_severity = unique(accidents$injury_severity)
+)
+
+# Count actual accidents
+accident_counts <- accidents %>%
+  group_by(event_year, operator_type, injury_severity) %>%
+  summarise(n = n(), .groups = "drop")
+
+# Merge with full grid and fill missing combinations with zero
+plot_data <- full_grid %>%
+  left_join(accident_counts, by = c("event_year", "operator_type", "injury_severity")) %>%
+  mutate(n = replace_na(n, 0))
+
+# Plot with complete year coverage
+ggplot(plot_data, aes(x = event_year, y = n, fill = injury_severity)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~ operator_type) +
+  labs(
+    title = "Accident Injury Severity by Year and Operator Type",
+    x = "Year",
+    y = "Number of Accidents",
+    fill = "Injury Severity",
+    caption = "Source: NTSB accident data"
+  ) +
+  theme_minimal()
+```
