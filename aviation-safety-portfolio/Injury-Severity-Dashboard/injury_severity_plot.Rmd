@@ -1,0 +1,95 @@
+---
+title: "Accident Injury Severity by Year"
+author: "Eli Green"
+date: "2025-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+```
+
+
+##  Load and Prepare Data
+
+```{r load-data}
+all_injuries <- read.csv(
+  "C:/Users/jigga/OneDrive/Data Analytics/R Programming/Activities/all_injuries.csv",
+  stringsAsFactors = FALSE
+)
+```
+
+## Extract Event Year
+
+```{r Extract event year}
+all_injuries <- all_injuries %>%
+  mutate(event_year = lubridate::year(as.Date(Event_Date)))
+```
+
+## Classify SMS Domains
+
+``` {r Classify SMS Domains}
+all_injuries <- all_injuries %>%
+  mutate(sms_keywords = case_when(
+    str_detect(Probable_Cause, regex("training|procedure|checklist|communication", ignore_case = TRUE)) ~ "Human Factors",
+    str_detect(Probable_Cause, regex("weather|visibility|wind|icing", ignore_case = TRUE)) ~ "Environmental",
+    str_detect(Probable_Cause, regex("engine|mechanical|failure|maintenance", ignore_case = TRUE)) ~ "Technical",
+    str_detect(Probable_Cause, regex("runway|ATC|airspace|navigation", ignore_case = TRUE)) ~ "Operational",
+    TRUE ~ "Other"
+  ))
+```
+
+## Classify Operator Type
+
+```{r Classify Operator Type}
+all_injuries <- all_injuries %>%
+  mutate(operator_type = case_when(
+    str_detect(Operator, regex("Airlines|Cargo|Jet|Express", ignore_case = TRUE)) ~ "Commercial",
+    str_detect(Operator, regex("Private|Individual|Owner", ignore_case = TRUE)) ~ "Private",
+    str_detect(Operator, regex("Military|USAF|Navy", ignore_case = TRUE)) ~ "Military",
+    TRUE ~ "Other"
+  ))
+```
+
+## Classify Operator Type
+
+```{r ## Classify Operator Type}
+all_injuries <- all_injuries %>%
+  mutate(operator_type = case_when(
+    str_detect(Operator, regex("Airlines|Cargo|Jet|Express", ignore_case = TRUE)) ~ "Commercial",
+    str_detect(Operator, regex("Private|Individual|Owner", ignore_case = TRUE)) ~ "Private",
+    str_detect(Operator, regex("Military|USAF|Navy", ignore_case = TRUE)) ~ "Military",
+    TRUE ~ "Other"
+  ))
+```
+
+## Filter for Plot
+
+```{r Filter for Plot}
+plot_data <- all_injuries %>%
+  filter(!is.na(sms_keywords), !is.na(operator_type))
+```
+
+## Injury Severity Plot
+```{r Injury Severity Plot}
+ggplot(plot_data, aes(x = event_year, fill = Highest_Injury_Level)) +
+  geom_bar(position = "stack") +
+  facet_grid(rows = vars(sms_keywords), cols = vars(operator_type), drop = TRUE) +
+  labs(
+    title = "Accident Injury Severity by Year, SMS Domain, and Operator Type",
+    x = "Year",
+    y = "Number of Accidents",
+    fill = "Injury Severity"
+  ) +
+  theme_minimal()
+```
+## Observations
+```{r Observations}
+cat("This plot reveals how injury severity trends vary across SMS domains and operator types. It supports audit storytelling, dashboard segmentation, and regulatory mapping.")
+```
+
+
