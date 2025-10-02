@@ -2,9 +2,13 @@
 title: "Injury Severity Dashboard"
 author: "Eli Green"
 date: "2025-10-02"
-output: html_document
+output:
+  html_document:
+    self_contained: true
+    theme: flatly
+    toc: true
+    toc_depth: 2
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)

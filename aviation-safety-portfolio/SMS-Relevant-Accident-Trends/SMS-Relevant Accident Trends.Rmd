@@ -1,8 +1,13 @@
 ---
-title: "SMS-Relevant Accident Trends"
-author: "Eli Green"
-date: "2025-10-02"
-output: html_document
+title: "Aviation Safety Dashboard"
+author: "Eli"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    self_contained: true
+    theme: flatly
+    toc: true
+    toc_depth: 2
 ---
 
 ### 1. **R Code Chunk (setup)**
